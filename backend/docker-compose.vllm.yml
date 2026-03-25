@@ -7,7 +7,10 @@ services:
     command: >
       --model Qwen/Qwen2.5-3B-Instruct
       --api-key token-abc123
-      --max-model-len 1024
+      --max-model-len 512
+      --quantization bitsandbytes
+      --load-format bitsandbytes
+      --gpu-memory-utilization 0.95
     deploy:
       resources:
         reservations:
