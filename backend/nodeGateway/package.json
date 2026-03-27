@@ -1,9 +1,15 @@
 {
-  "name": ".",
-  "module": "index.ts",
+  "name": "node-gateway",
+  "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "ollama": "../scripts/start-ollama.sh"
+  },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0"
@@ -12,8 +18,11 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
+    "express": "^5.2.1",
+    "openai": "^6.33.0",
     "pg": "^8.20.0"
   }
 }
