@@ -1,7 +1,9 @@
 import express, { type Request, type Response } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -14,6 +16,10 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "ollama";
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+
+// Routes
+app.use("/auth", authRoutes);
 
 // Initialize OpenAI client pointing to Ollama
 const client = new OpenAI({
