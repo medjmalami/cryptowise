@@ -11,7 +11,7 @@ import { sql } from "drizzle-orm";
 // ─── users ───────────────────────────────────────────────
 export const users = pgTable("users", {
   id:           uuid("id").primaryKey().defaultRandom(),
-  email:        text("email").notNull().unique(),
+  email:        text("email").notNull(),
   username:     text("username").notNull().unique(),
   password:     text("password").notNull(),
   refreshToken: text("refresh_token"),
