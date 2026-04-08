@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function ChatPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
-  const { currentConversation, addMessage, createConversation } = useChat();
+  const { currentConversation, sendMessage, createConversation, isLoadingMessage } = useChat();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -42,21 +42,23 @@ export default function ChatPage() {
     handleSendMessage(prompt);
   };
 
-  const handleSendMessage = (message: string) => {
-    addMessage(message, 'user');
+  const handleSendMessage = async (message: string) => {
+    if (!currentConversation) {
+      createConversation();
+      // Wait a bit for conversation to be created
+      setTimeout(() => handleSendMessage(message), 100);
+      return;
+    }
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        'That\'s a great question! Let me help you with that.',
-        'I can provide you with detailed information about that.',
-        'Here\'s what I think about your question...',
-        'Based on your question, here are some insights...',
-        'That\'s an interesting topic! Let me elaborate...',
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      addMessage(randomResponse, 'assistant');
-    }, 500);
+    try {
+      await sendMessage(message);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to send message',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -83,7 +85,7 @@ export default function ChatPage() {
           )}
         </div>
 
-        <ChatInput onSubmit={handleSendMessage} />
+        <ChatInput onSubmit={handleSendMessage} disabled={isLoadingMessage} />
       </div>
     </ChatLayout>
   );

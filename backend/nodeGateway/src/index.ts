@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import morgan from "morgan";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
@@ -14,9 +15,17 @@ const LLM_MODEL = process.env.LLM_MODEL || "qwen2.5:3b";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "ollama";
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
+app.use(morgan("dev")); // Request logging
 
 // Routes
 app.use("/auth", authRoutes);
