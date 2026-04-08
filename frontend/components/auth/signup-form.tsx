@@ -47,10 +47,11 @@ export function SignupForm() {
         description: 'Account created successfully. Welcome!',
       });
       router.push('/chat');
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to create account. Please try again.';
       toast({
         title: 'Error',
-        description: 'Failed to create account. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

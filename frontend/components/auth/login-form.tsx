@@ -44,10 +44,11 @@ export function LoginForm() {
         description: 'You have been logged in successfully.',
       });
       router.push('/chat');
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to log in. Please check your credentials.';
       toast({
         title: 'Error',
-        description: 'Failed to log in. Please check your credentials.',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

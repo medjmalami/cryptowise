@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import * as chatService from './api/chat.service';
 
 export interface Message {
   id: string;
@@ -20,11 +21,13 @@ export interface Conversation {
 interface ChatContextType {
   conversations: Conversation[];
   currentConversation: Conversation | null;
+  isLoadingMessage: boolean;
   createConversation: () => void;
   selectConversation: (id: string) => void;
   deleteConversation: (id: string) => void;
   clearAllConversations: () => void;
   addMessage: (content: string, role: 'user' | 'assistant') => void;
+  sendMessage: (content: string) => Promise<void>;
   renameConversation: (id: string, title: string) => void;
 }
 
@@ -42,6 +45,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(
     conversations.length > 0 ? conversations[0] : null
   );
+
+  const [isLoadingMessage, setIsLoadingMessage] = useState(false);
 
   const createConversation = useCallback(() => {
     const newConversation: Conversation = {
@@ -124,16 +129,98 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentConversation]);
 
+  // New function: Send message to API and get AI response
+  const sendMessage = useCallback(async (content: string) => {
+    if (!currentConversation) return;
+
+    // Add user message first
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content,
+      role: 'user',
+      timestamp: new Date(),
+    };
+
+    let updatedConversation = {
+      ...currentConversation,
+      messages: [...currentConversation.messages, userMessage],
+      updatedAt: new Date(),
+    };
+
+    // Update state with user message
+    setConversations((prev) => {
+      const updated = prev.map((c) => (c.id === currentConversation.id ? updatedConversation : c));
+      localStorage.setItem('conversations', JSON.stringify(updated));
+      return updated;
+    });
+    setCurrentConversation(updatedConversation);
+
+    // Call API for AI response
+    setIsLoadingMessage(true);
+    try {
+      const response = await chatService.sendChatMessage(content);
+      const assistantContent = chatService.extractAssistantMessage(response);
+
+      // Add assistant message
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: assistantContent,
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      updatedConversation = {
+        ...updatedConversation,
+        messages: [...updatedConversation.messages, assistantMessage],
+        updatedAt: new Date(),
+      };
+
+      setConversations((prev) => {
+        const updated = prev.map((c) => (c.id === currentConversation.id ? updatedConversation : c));
+        localStorage.setItem('conversations', JSON.stringify(updated));
+        return updated;
+      });
+      setCurrentConversation(updatedConversation);
+    } catch (error) {
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: error instanceof Error ? `Error: ${error.message}` : 'Failed to get response from AI. Please try again.',
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      updatedConversation = {
+        ...updatedConversation,
+        messages: [...updatedConversation.messages, errorMessage],
+        updatedAt: new Date(),
+      };
+
+      setConversations((prev) => {
+        const updated = prev.map((c) => (c.id === currentConversation.id ? updatedConversation : c));
+        localStorage.setItem('conversations', JSON.stringify(updated));
+        return updated;
+      });
+      setCurrentConversation(updatedConversation);
+      
+      throw error;
+    } finally {
+      setIsLoadingMessage(false);
+    }
+  }, [currentConversation]);
+
   return (
     <ChatContext.Provider
       value={{
         conversations,
         currentConversation,
+        isLoadingMessage,
         createConversation,
         selectConversation,
         deleteConversation,
         clearAllConversations,
         addMessage,
+        sendMessage,
         renameConversation,
       }}
     >
