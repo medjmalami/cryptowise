@@ -11,6 +11,17 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, userAvatar, userName }: MessageBubbleProps) {
   const isUser = message.role === 'user';
+  const messageDate =
+    message.timestamp instanceof Date
+      ? message.timestamp
+      : new Date(message.timestamp as unknown as string | number | Date);
+
+  const formattedTime = Number.isNaN(messageDate.getTime())
+    ? '--:--'
+    : messageDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
   return (
     <div className={`flex gap-3 mb-4 ${isUser ? 'flex-row-reverse' : ''}`}>
@@ -48,10 +59,7 @@ export function MessageBubble({ message, userAvatar, userName }: MessageBubblePr
           <p className="break-words">{message.content}</p>
         </div>
         <span className="text-xs text-muted-foreground px-2">
-          {message.timestamp.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+          {formattedTime}
         </span>
       </div>
     </div>

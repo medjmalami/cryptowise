@@ -37,7 +37,35 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('conversations');
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+
+      try {
+        const parsed = JSON.parse(stored) as Array<{
+          id: string;
+          title: string;
+          messages: Array<{
+            id: string;
+            content: string;
+            role: 'user' | 'assistant';
+            timestamp: string | number | Date;
+          }>;
+          createdAt: string | number | Date;
+          updatedAt: string | number | Date;
+        }>;
+
+        return parsed.map((conversation) => ({
+          ...conversation,
+          messages: conversation.messages.map((message) => ({
+            ...message,
+            timestamp: new Date(message.timestamp),
+          })),
+          createdAt: new Date(conversation.createdAt),
+          updatedAt: new Date(conversation.updatedAt),
+        }));
+      } catch {
+        localStorage.removeItem('conversations');
+        return [];
+      }
     }
     return [];
   });
