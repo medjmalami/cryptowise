@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun src/index.ts",
+    "dev": "bun --watch run src/index.ts",
     "ollama": "../scripts/start-ollama.sh"
   },
   "devDependencies": {
